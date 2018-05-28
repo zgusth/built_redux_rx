@@ -27,7 +27,9 @@ Middleware<V, B, A> createEpicMiddleware<
           _epics.stream
               .transform(new FlatMapLatestStreamTransformer(
                   (epic) => epic(new Observable(_actions.stream), mwApi)))
-              .listen((_) => next(action));
+              .listen((_) {
+            // next(action);
+          });
 
           _epics.add(combined);
 
@@ -50,9 +52,11 @@ class EpicBuilder<V extends Built<V, B>, B extends Builder<V, B>,
   final _epics = new List<Epic<V, B, A>>();
 
   add<T>(ActionName<T> actionName, EpicHandler<V, B, A, T> handler) {
-    _epics.add(
-        (Observable<Action<dynamic>> action, MiddlewareApi<V, B, A> mwApi) =>
-            handler(action.where((a) => a.name == actionName.name), mwApi));
+    _epics.add((Observable<Action<dynamic>> action,
+            MiddlewareApi<V, B, A> mwApi) =>
+        handler(
+            action.where((a) => a.name == actionName.name).cast<Action<T>>(),
+            mwApi));
   }
 
   Iterable<Epic<V, B, A>> build() => _epics;
